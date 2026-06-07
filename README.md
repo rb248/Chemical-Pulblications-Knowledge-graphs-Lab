@@ -89,7 +89,11 @@ The task is to:
 
 ## Configuration
 
-The background worker endpoints are configurable using environment variables. This allows redirecting requests if the main Knowledge Graph (ChemKG) server has moved or is hosted locally:
+> [!WARNING]
+> **Active Knowledge Graph Endpoint Required:**
+> The original public ChemEngKG server (`h3008088.stratoserver.net`) is retired/down. To run the background microservices in production, you will need to set up a new Knowledge Graph database (e.g., via OpenLink Virtuoso) with a GraphQL API wrapper, and configure the worker to point to your new endpoint.
+
+The background worker endpoints are configurable using environment variables. This allows redirecting requests to your custom or local Knowledge Graph (ChemKG) server:
 
 - **`KG_URL`**: The GraphQL endpoint URL of the ChemEngKG. (Default: `http://h3008088.stratoserver.net:4001/graphql`)
 - **`KG_GRAPH`**: The graph name in the triple store. (Default: `KGlab`)

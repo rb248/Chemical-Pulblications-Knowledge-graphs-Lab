@@ -100,3 +100,19 @@ export KG_URL="http://localhost:4001/graphql"
 export KG_GRAPH="KGlab"
 python -m services.img_extraction.extraction_worker
 ```
+
+### Local Testing with Mock KG Server
+
+If the remote Knowledge Graph server is down or unresolvable, you can spin up a local mock GraphQL server that simulates the ChemEngKG backend:
+
+```bash
+python test/mock_kg_server.py
+```
+
+This starts a FastAPI mock server at `http://127.0.0.1:4001/graphql` that responds to SPARQL task queries and parses upload mutations. To run the worker against this mock server, use:
+
+```bash
+export KG_URL="http://127.0.0.1:4001/graphql"
+export KG_GRAPH="KGlab"
+python -m services.img_extraction.extraction_worker
+```

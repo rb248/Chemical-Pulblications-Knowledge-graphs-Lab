@@ -15,7 +15,9 @@ class ExtractionWorker(Worker):
 
     def __init__(self, api_url="http://127.0.0.1:8080"):
         super().__init__()
-        self._chemkg = ChemKG(url="http://h3008088.stratoserver.net:4001/graphql", graph="KGlab")
+        kg_url = os.getenv("KG_URL", "http://h3008088.stratoserver.net:4001/graphql")
+        kg_graph = os.getenv("KG_GRAPH", "KGlab")
+        self._chemkg = ChemKG(url=kg_url, graph=kg_graph)
         self._publication_doi = None
         self._publication_uri = None
         self._queries = Queries()

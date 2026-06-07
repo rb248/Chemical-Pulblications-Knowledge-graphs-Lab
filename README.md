@@ -8,6 +8,14 @@ docker run -d --name kglab -p 80:80 kglab-model-zoo
 ```
 The API can then be reached through `http://localhost:80/`
 
+## Local Setup
+
+To install dependencies locally (which automatically fetches the custom `kgtool` package from GitHub):
+
+```bash
+pip install -r docker/requirements.txt
+```
+
 ## API
 
 ### ./app/main.py
@@ -78,3 +86,17 @@ The task is to:
 1. Fetch a publication from the knowledge graph (ChemKG) that doesn't have any images assigned yet.
 2. Extract images from that publication.
 3. Post the images to the knowledge graph.
+
+## Configuration
+
+The background worker endpoints are configurable using environment variables. This allows redirecting requests if the main Knowledge Graph (ChemKG) server has moved or is hosted locally:
+
+- **`KG_URL`**: The GraphQL endpoint URL of the ChemEngKG. (Default: `http://h3008088.stratoserver.net:4001/graphql`)
+- **`KG_GRAPH`**: The graph name in the triple store. (Default: `KGlab`)
+
+For example, to run the worker against a local KG instance:
+```bash
+export KG_URL="http://localhost:4001/graphql"
+export KG_GRAPH="KGlab"
+python -m services.img_extraction.extraction_worker
+```

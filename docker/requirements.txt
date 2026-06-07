@@ -1,2 +1,9 @@
-torchvision==0.9.1
-numpy==1.20.3
+torchvision==0.15.2
+numpy
+layoutparser
+fastapi==0.95.2
+pydantic==1.10.8
+uvicorn==0.22.0
+python-multipart==0.0.6
+httpx==0.24.1
+kgtool @ git+https://github.com/process-intelligence-research/ChemEngKG_kgtool

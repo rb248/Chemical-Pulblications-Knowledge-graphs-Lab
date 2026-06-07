@@ -1,56 +1,80 @@
-# Knowledge Graphs Lab: Chemical Publication
-**Summer semester 2023, RWTH Aachen (i5) together with TU Delft (Process Intellifence Research)**
+# ModelZoo
+Contains different machine learning models for chemical engineering and makes them available via a restful API.
 
-## Task
-- Extract and structure "hidden" information from scientific (chemical) literatur and patens
-- Save information in a knowledge graph
-  - Make data FAIR (Findability, Accessibility, Interoperability, Reuseability)
-- Setup Workflow: front end, back end, data mining service
+The docker image can be build locally and then started locally by executing
+```commandline
+docker build -t kglab-model-zoo .
+docker run -d --name kglab -p 80:80 kglab-model-zoo
+```
+The API can then be reached through `http://localhost:80/`
 
-## Technology stack
-| Technology | Purpose |
-|------------|---------|
-| [Python](https://www.python.org/)     | Main programming language |
-| GitHub     | Code develepement, including [GitHub actions](https://docs.github.com/en/actions) for CI |
-| [Docker](https://docs.docker.com/)     | Code execution |
-| [virtuoso](https://virtuoso.openlinksw.com/) | Graph database &rarr; store KG |
-| [SPARQL](https://www.w3.org/TR/sparql11-query/)     | Query language for KG |
-| [streamlit.io](https://docs.streamlit.io/) | Frontend developement |
-| [PyTorch](https://pytorch.org/)    | Extraction from data &rarr; Image classification, deep CNN |
-| [FastAPI](https://fastapi.tiangolo.com/)    | Implements RestAPI |
+## API
 
-## Basic Software Architecture
-![Basic Architecture](assets/basic_arch.png)
-Source: TU Delft, Process Intelligence Research
+### ./app/main.py
 
-## TODOs
-- [ ] Develop API for existing ML models for image classification
-  - [ ] Define API specifications
-  - [ ] Implement API in FastAPI
-  - Requirements: include multiple different ML models, run in docker
-- [ ] Implement micro-service automatically extracting images form publications
-  - [ ] Get publication through SPARQL
-  - [ ] Return extracted images to KG
-  - Using existing micro-service structure, using python package KGtool
-- [ ] Implement micro-service automatically classifiying images
-  - [ ] Get images through SPARQL
-  - [ ] Use implemented API to call ML model
-  - [ ] Return predicted image type to KG
-  - Using existing micro-service structure, using python package KGtool
-- [ ] Extend existing streamlit frontend to view
-  - [ ] Add KG statistics
-  - [ ] Add graphs (e.g., how many images with specific type vs year)
-  - [ ] Add overview of images that
-    - user can sort, search, filter
-    - according  to type, year, issn, ...
+FastAPI executing the models.
 
+For a detailed documentation of the endpoints: see the openapi endpoint `<host>:<port>/documentation`
+- The opened SwaggerUI can also be utilized to directly test the endpoints
 
+## Models
+Inside the `./app/models` folder
 
-## Abbreviations:
-| Abbreviation | Meaning |
-|--------------|---------|
-| ML           | Machine Learning |
-| CI           | Continuous Integration |
-| CNN          | Convolutional neural network |
-| KG           | Knowledge Graph |
+### SMILES to Property Transformer
 
+> NOTE: Not supported (code can be found in directory `old_app`, but is not integrated in the build docker) 
+
+Code copied from the repository [here](https://github.com/Bene94/SMILES2PropertiesTransformer) from the paper "A SMILE is all you need: Predicting limiting  activity coefficients from SMILES with natural language processing" ([here](https://arxiv.org/abs/2206.07048)) by Winter et al.
+
+Minor adjustments:
+
+- https://github.com/process-intelligence-research/ModelAPI/blob/main/SMILES2PropertiesTransformer/src/misc/simple_evaluation.py
+  - Turn module into executable function.
+- https://github.com/process-intelligence-research/ModelAPI/blob/main/SMILES2PropertiesTransformer/src/transprop/load_model.py
+  - add arg to function load_model to choose PyTorch device (CPU vs GPU)
+
+### Flowsheet recognition classifying images
+
+Code copied from [here](https://drive.google.com/file/d/1ahO7mpRKNW00YmCCIGJgPxUAkLoXj6z8/view?usp=sharing), concrete architecture captured in the paper ["Flowsheet Recognition using Deep Convolutional Neural Networks"](https://doi.org/10.1016/B978-0-323-85159-6.50261-X) by Schulze Balhorn, Gao, Goldstein, and Schweidtmann.
+
+### Object detection extracting figures from documents
+
+Code copied from [here](https://drive.google.com/file/d/1HLQrLQTv-1PU2iLfnKCg0YXmx7Y7278q/view?usp=sharing) using the Python package [Layout Parser](https://layout-parser.github.io/) (detailed documentation [here](https://layout-parser.readthedocs.io/en/latest/notes/installation.html)).
+
+## Testing and CI
+
+There are two workflows executed whenever pushing to the repository. 
+- One is for testing whether the docker container function properly (can be build), defined in `push.yml`
+- The other is for executing the unit tests defined under `./test` and checking whether they run through smoothly, defined in `unit_test.yml`
+
+### Unit tests
+The unit tests are implemented for the following elements:
+- The API for object detection and image classification
+
+They can be executed by running `pytest` or `python -m unittest` in the working directory of this project. To check the code coverage of the tests, the following commands can be used:
+```commandline
+  % First of all: package `coverage` must be installed -> run
+  pip install coverage
+  
+  % If the package is installed, run the following commands to get the coverage report and an html output for seeing which parts of the code where tested
+  python -m coverage run -m unittest
+  python -m coverage report
+  python -m coverage html 
+```
+
+## Documentation
+A detailed explanation for the endpoints can be seen under the endpoint `<host>:<port>/documentation`
+- This endpoint provides the [Swagger](https://github.com/swagger-api/swagger-ui) documentation (also called OpenAPI)
+
+# Microservices
+Additionally to the models and the according API, this repository also contains microservices to execute the models.
+- They are all implementing a so called `worker` (see `services/abstract_worker.py`)
+
+They are located in the module `services`.
+- The unit tests are also executed with the test command from above, the tests are located in `test/services`
+
+## Image Extraction
+The task is to:
+1. Fetch a publication from the knowledge graph (ChemKG) that doesn't have any images assigned yet.
+2. Extract images from that publication.
+3. Post the images to the knowledge graph.
